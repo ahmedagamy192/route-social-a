@@ -1,5 +1,5 @@
 import { RouterProvider } from "react-router";
-import Router from "./routes/Router";
+import  router  from "./routes/Router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 
@@ -11,7 +11,7 @@ const App = () => {
     <>
       <QueryClientProvider client={queryClient}>
         <Toaster position="top-center" reverseOrder={false} />
-        <RouterProvider router={Router} />
+        <RouterProvider router={router} />
       </QueryClientProvider>
     </>
   );

@@ -7,7 +7,7 @@ const MainAuth = () => {
     <>
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
         <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* 1. القسم التعريفي (اليسار) */}
+         
           <div className="flex flex-col justify-center space-y-6">
             <h1 className="text-5xl font-extrabold text-blue-900 tracking-tight">
               Route Posts
@@ -16,29 +16,27 @@ const MainAuth = () => {
               Connect with friends and the world around you on Route Posts.
             </p>
 
-            {/* بطاقة معلومات الأكاديمية */}
             <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-blue-900">
-                About Route Academy[cite: 2]
+                About Route Academy
               </h3>
               <h4 className="text-xl font-bold text-slate-900">
-                Egypt's Leading IT Training Center Since 2012[cite: 2]
+                Egypt's Leading IT Training Center Since 2012
               </h4>
               <p className="text-sm text-slate-600 leading-relaxed">
                 Route Academy is the premier IT training center in Egypt,
                 established in 2012. We specialize in delivering high-quality
                 training courses in programming, web development, and
-                application development.[cite: 2]
+                application development.
               </p>
 
-              {/* شبكة الإحصائيات (Stats Grid) */}
               <div className="grid grid-cols-3 gap-3 pt-2">
                 <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                   <span className="text-lg font-bold text-slate-900 block">
                     2012
                   </span>
                   <span className="text-[10px] uppercase font-semibold text-slate-500">
-                    Founded[cite: 2]
+                    Founded
                   </span>
                 </div>
                 <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
@@ -46,7 +44,7 @@ const MainAuth = () => {
                     40K+
                   </span>
                   <span className="text-[10px] uppercase font-semibold text-slate-500">
-                    Graduates[cite: 2]
+                    Graduates
                   </span>
                 </div>
                 <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
@@ -54,7 +52,7 @@ const MainAuth = () => {
                     50+
                   </span>
                   <span className="text-[10px] uppercase font-semibold text-slate-500">
-                    Partner Companies[cite: 2]
+                    Partner Companies
                   </span>
                 </div>
                 <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
@@ -62,7 +60,7 @@ const MainAuth = () => {
                     5
                   </span>
                   <span className="text-[10px] uppercase font-semibold text-slate-500">
-                    Branches[cite: 2]
+                    Branches
                   </span>
                 </div>
                 <div className="bg-slate-50 col-span-2 p-3 rounded-xl border border-slate-100">
@@ -70,14 +68,14 @@ const MainAuth = () => {
                     20
                   </span>
                   <span className="text-[10px] uppercase font-semibold text-slate-500">
-                    Diplomas Available[cite: 2]
+                    Diplomas Available
                   </span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* 2. قسم بطاقة المصادقة باستخدام HeroUI Tabs */}
+          {/* auth Tabs */}
           <div className="flex justify-center">
             <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-8 w-full max-w-md">
               <Tabs className="w-full max-w-md" defaultSelectedKey="login">

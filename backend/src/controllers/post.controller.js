@@ -228,3 +228,20 @@ export const getPostById = async (req, res) => {
     });
   }
 };
+
+
+// جلب منشورات لمستخدم معين
+
+
+export const getUserPosts = async (req, res) => {
+  try {
+    const userId = req.user._id; 
+    const posts = await Post.find({ user: userId }).sort({ createdAt: -1 });
+    return res.status(200).json(posts);
+  } catch (error) {
+    console.error("Error in getUserPosts controller:", error.message);
+    return res
+      .status(500)
+      .json({ message: "خطأ في السيرفر", error: error.message });
+  }
+};

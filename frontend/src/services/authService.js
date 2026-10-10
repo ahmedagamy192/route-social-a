@@ -1,29 +1,29 @@
-// استيراد نسخة الأكسيوس التي جهزناها مسبقاً
+
 
 import axiosInstance from "./axiosInstance";
 
-// دالة تسجيل حساب جديد
+// signup function
 export const registerApi = async (userData) => {
-  // نرسل طلب POST إلى مسار الـ signup في السيرفر مع بيانات المستخدم
+  
   const response = await axiosInstance.post("/auth/signup", userData);
-  return response.data; // نعيد البيانات القادمة من السيرفر
+  return response.data; 
 };
 
-// دالة تسجيل الدخول
+// login function
 export const loginApi = async (credentials) => {
-  // نرسل طلب POST إلى مسار الـ login في السيرفر مع البريد وكلمة السر
   const response = await axiosInstance.post("/auth/login", credentials);
-  return response.data; // نعيد البيانات القادمة من السيرفر
+  return response.data; 
 };
 
+// logout function
 export const logoutApi = async () => {
   const response = await axiosInstance.post("/auth/logout");
   return response.data;
 };
 
-
-// أضف هذه الدالة إلى src/services/authService.js إذا لم تكن موجودة
+// user information function
 export const getCurrentUserApi = async () => {
-  const response = await axiosInstance.get("/auth/profile"); // أو /auth/me حسب مسار الباك إند لديك
+  const response = await axiosInstance.get("/auth/profile");
   return response.data;
 };
+
