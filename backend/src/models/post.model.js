@@ -1,20 +1,56 @@
+// models/post.model.js
 import mongoose from "mongoose";
 
 const postSchema = new mongoose.Schema(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // post owner
-    text: { type: String },
-    image: { type: String }, // رابط الصورة من Cloudinary
-    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // fans
+   
+    text: {
+      type: String,
+      required: false,
+    },
+   
+    image: {
+      type: String,
+      required: false,
+    },
+    // صاحب المنشور الأصلي
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+   
+    likes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+
     comments: [
       {
-        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-        text: String,
-        createdAt: { type: Date, default: Date.now },
+        
+        text: {
+          type: String,
+          required: true,
+        },
+        // المستخدم الذي كتب هذا التعليق بالذات
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
       },
     ],
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+  },
 );
 
 const Post = mongoose.model("Post", postSchema);

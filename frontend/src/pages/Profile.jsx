@@ -1,6 +1,6 @@
+// src/pages/Profile.jsx
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-
 import {
   User,
   Mail,
@@ -8,17 +8,20 @@ import {
   Loader2,
   Bookmark,
   FileText,
-
 } from "lucide-react";
 import { motion } from "framer-motion";
 import LogoutButton from "../Layout/AuthLayout/Logout";
+
+import SavedPosts from "../components/SavedPosts"; // استيراد مكون المنشورات المحفوظة المنفصل
 import { getCurrentUserApi } from "../services/authService";
+import { getUserPostsApi } from "../services/postService";
+import DeletePost from "../components/DeletePost";
 
 const Profile = () => {
-  // حالة للتحكم في التنقل بين الـ Tabs (My Posts أو Saved)
+  // حالة التحكم فى عرض المنشورات الخاصة او المحفوظة يتم عرضها فى اسفل الملف
   const [activeTab, setActiveTab] = useState("myPosts");
 
-  // 1. جلب بيانات المستخدم الحالية باستخدام TanStack Query
+  // جلب بيانات المستخدم الحالي لعرضها في البروفايل
   const {
     data: response,
     isLoading,
@@ -27,13 +30,24 @@ const Profile = () => {
   } = useQuery({
     queryKey: ["authUser"],
     queryFn: getCurrentUserApi,
-    retry: false, // لا تعيد المحاولة تلقائياً إذا انتهت صلاحية التوكن لمنع التكرار
+    retry: false,
   });
 
-  // استخراج بيانات المستخدم من الاستجابة (ح حسب هيكل الباك إند: response.data أو response مباشرة)
   const userData = response?.data || response;
 
-  // 2. حالة التحميل (Loading State)
+  //  جلب منشورات الخاصة بالمستخدم
+  const { data: userPostsResponse, isLoading: postsLoading } = useQuery({
+    queryKey: ["userPosts"],
+    queryFn: getUserPostsApi,
+    enabled: !!userData, // لا يتم جلب المنشورات إلا إذا توفرت بيانات المستخدم أولاً
+  });
+
+  const userPosts =
+    userPostsResponse?.data ||
+    userPostsResponse?.posts ||
+    userPostsResponse ||
+    [];
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh]">
@@ -43,21 +57,13 @@ const Profile = () => {
     );
   }
 
-  // 3. حالة الخطأ (مثل انتهت صلاحية الـ JWT أو عدم تسجيل الدخول)
   if (isError) {
-    const errorMsg =
-      error.response?.data?.message || "حدث خطأ في تحميل البيانات";
+    const errorMsg = error.response?.data?.message || "download error";
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh] px-4">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md text-center shadow-sm">
           <p className="text-red-700 font-bold mb-2">تنبيه في الجلسة</p>
           <p className="text-sm text-red-600 mb-4">{errorMsg}</p>
-          {errorMsg.toLowerCase().includes("jwt") ||
-          errorMsg.toLowerCase().includes("expired") ? (
-            <p className="text-xs text-gray-500">
-              انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى.
-            </p>
-          ) : null}
         </div>
       </div>
     );
@@ -66,7 +72,7 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-gray-50/50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto space-y-6">
-        {/* بطاقة البروفايل العلوية */}
+        {/* البيانات الشخصية*/}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -74,15 +80,12 @@ const Profile = () => {
           className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
         >
           <LogoutButton />
-          {/* غلاف الخلفية العلوي */}
           <div className="h-60 border-2 rounded-t-3xl bg-linear-to-r from-slate-800 via-blue-900 to-slate-900 px-6 flex justify-end items-center"></div>
 
-          {/* محتوى بيانات المستخدم والصورة والإحصائيات */}
-          <div className="px-6 pb-6 relative bottom-25 ">
+          <div className="px-6 pb-6 relative bottom-25">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end -mt-16 mb-6 gap-4">
-              {/* صورة البروفايل واسم المستخدم */}
               <div className="flex items-end gap-4">
-                <div className="relative bg-white p-2 rounded-full shadow-md border-4 border-white ">
+                <div className="relative bg-white p-2 rounded-full shadow-md border-4 border-white">
                   <div className="bg-linear-to-tr from-emerald-500 to-teal-400 text-white h-24 w-24 rounded-full flex items-center justify-center text-3xl font-bold shadow-inner">
                     {userData?.name ? (
                       userData.name.charAt(0).toUpperCase()
@@ -91,11 +94,11 @@ const Profile = () => {
                     )}
                   </div>
                 </div>
-                <div className="mb-2  text-white">
-                  <h1 className="text-2xl  font-bold ">
+                <div className="mb-2 text-white">
+                  <h1 className="text-2xl font-bold">
                     {userData?.name || "مستخدم جديد"}
                   </h1>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-400">
                     @
                     {userData?.username ||
                       userData?.email?.split("@")[0] ||
@@ -106,39 +109,10 @@ const Profile = () => {
                   </span>
                 </div>
               </div>
-
-              {/* بطاقات الإحصائيات (Followers, Following, Bookmarks) */}
-              <div className="grid grid-cols-3 gap-3 w-full md:w-auto">
-                <div className="bg-gray-50 border border-gray-100 px-4 py-3 rounded-xl text-center min-w-22.5">
-                  <span className="block text-xs font-medium text-gray-400">
-                    FOLLOWERS
-                  </span>
-                  <span className="text-lg font-bold text-gray-800">
-                    {userData?.followersCount || 0}
-                  </span>
-                </div>
-                <div className="bg-gray-50 border border-gray-100 px-4 py-3 rounded-xl text-center min-w-22.5">
-                  <span className="block text-xs font-medium text-gray-400">
-                    FOLLOWING
-                  </span>
-                  <span className="text-lg font-bold text-gray-800">
-                    {userData?.followingCount || 0}
-                  </span>
-                </div>
-                <div className="bg-gray-50 border border-gray-100 px-4 py-3 rounded-xl text-center min-w-22.5">
-                  <span className="block text-xs font-medium text-gray-400">
-                    BOOKMARKS
-                  </span>
-                  <span className="text-lg font-bold text-gray-800">
-                    {userData?.bookmarksCount || 0}
-                  </span>
-                </div>
-              </div>
             </div>
 
-            {/* تفاصيل About والـ Widgets الجانبية */}
+            {/* تفاصيل About والعدادات الإحصائية */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-5 border-t border-gray-100">
-              {/* صندوق الـ About */}
               <div className="md:col-span-1 bg-gray-50/70 p-4 rounded-xl border border-gray-100 space-y-3">
                 <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">
                   About
@@ -157,15 +131,15 @@ const Profile = () => {
                 </div>
               </div>
 
-              {/* صناديق ملخص المنشورات والمحفوظات */}
               <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* عداد المنشورات الخاصة */}
                 <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-xs flex justify-between items-center">
                   <div>
                     <span className="text-xs font-medium text-gray-400 uppercase">
                       My Posts
                     </span>
                     <h4 className="text-xl font-bold text-gray-800 mt-0.5">
-                      {userData?.postsCount || 0}
+                      {userData?.postsCount || userPosts.length || 0}
                     </h4>
                   </div>
                   <div className="bg-blue-50 p-3 rounded-lg text-blue-600">
@@ -173,13 +147,14 @@ const Profile = () => {
                   </div>
                 </div>
 
+                {/* عداد المنشورات المحفوظة */}
                 <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-xs flex justify-between items-center">
                   <div>
                     <span className="text-xs font-medium text-gray-400 uppercase">
                       Saved Posts
                     </span>
                     <h4 className="text-xl font-bold text-gray-800 mt-0.5">
-                      {userData?.savedPostsCount || 0}
+                      {userData?.savedPosts?.length || 0}
                     </h4>
                   </div>
                   <div className="bg-amber-50 p-3 rounded-lg text-amber-600">
@@ -191,7 +166,7 @@ const Profile = () => {
           </div>
         </motion.div>
 
-        {/* قسم الـ Tabs السفلية (My Posts / Saved) */}
+        {/* قسم الاختيارات السفلي*/}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
           {/* أزرار التبديل */}
           <div className="flex border-b border-gray-100 gap-8">
@@ -217,12 +192,48 @@ const Profile = () => {
             </button>
           </div>
 
-          {/* محتوى الـ Tab النشط */}
-          <div className="py-8 text-center bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
+          {/* العرض التعليقات او المنشورات المحفوظة بناؤ على الاختيار*/}
+          <div className="space-y-4">
             {activeTab === "myPosts" ? (
-              <p className="text-sm text-gray-500">You have not posted yet.</p>
+              postsLoading ? (
+                <div className="flex justify-center py-10">
+                  <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
+                </div>
+              ) : userPosts.length === 0 ? (
+                <p className="text-center text-gray-400 py-8 bg-gray-50/50 rounded-xl border border-dashed border-gray-200 text-sm">
+                  You have not posted yet.
+                </p>
+              ) : (
+                userPosts.map((post) => (
+                  <div
+                    key={post._id}
+                    className="bg-white p-4 rounded-xl border border-gray-100 shadow-xs space-y-3"
+                  >
+                    <div className="flex justify-between items-start">
+                      <p className="text-gray-800 text-sm">
+                        {post.text || post.body || post.content}
+                      </p>
+                      <DeletePost postId={post._id} />
+                    </div>
+                    {post.image && (
+                      <div className="rounded-lg overflow-hidden max-h-60 border border-gray-100">
+                        <img
+                          src={post.image}
+                          alt="post media"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <span className="text-xs text-gray-400 block">
+                      {post.createdAt
+                        ? new Date(post.createdAt).toLocaleDateString()
+                        : ""}
+                    </span>
+                  </div>
+                ))
+              )
             ) : (
-              <p className="text-sm text-gray-500">No saved posts found.</p>
+              <SavedPosts />
             )}
           </div>
         </div>

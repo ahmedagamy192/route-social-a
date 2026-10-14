@@ -44,7 +44,40 @@ export const createPost = async (req, res) => {
   }
 };
 
-export const likeUnlikePost = async (req, res) => {
+
+// جلب  جميع المنشورات المحفوظة للمستخدم
+export const getSavedPosts = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const user = await User.findById(userId).populate({
+      path: "savedPosts",
+      populate: {
+        path: "user",
+        select: "name username profilePic profileImg",
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const savedPosts = user.savedPosts.filter(Boolean);
+
+    res.status(200).json({
+      status: "success",
+      results: savedPosts.length,
+      data: savedPosts,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+
+// زر الاعجاب
+
+export const toggleLikePost = async (req, res) => {
   try {
     const userId = req.user._id;
     const { id: postId } = req.params;
@@ -87,7 +120,7 @@ export const likeUnlikePost = async (req, res) => {
   } catch (error) {
     console.error("Error in likeUnlikePost controller:", error.message);
     return res.status(500).json({
-      message: "خطأ في السيرفر أثناء التفاعل مع المنشور",
+      message: "server error أثناء التفاعل مع المنشور",
       error: error.message,
     });
   }
@@ -132,7 +165,7 @@ export const commentOnPost = async (req, res) => {
   } catch (error) {
     console.error("Error in commentOnPost controller:", error.message);
     return res.status(500).json({
-      message: "خطأ في السيرفر أثناء إضافة التعليق",
+      message: "server error أثناء إضافة التعليق",
       error: error.message,
     });
   }
@@ -206,24 +239,28 @@ export const getAllPosts = async (req, res) => {
   }
 };
 
-// get post by id
+
+
+  // دالة جلب منشور محدد بواسطة الـ ID
+ 
 export const getPostById = async (req, res) => {
   try {
     const { id: postId } = req.params;
 
+    // البحث عن المنشور وإحضار بيانات الناشر وصاحب كل تعليق
     const post = await Post.findById(postId)
       .populate("user", "name username profileImg")
       .populate("comments.user", "name username profileImg");
 
     if (!post) {
-      return res.status(404).json({ message: "post not found" });
+      return res.status(404).json({ message: "المنشور غير موجود" });
     }
 
     return res.status(200).json(post);
   } catch (error) {
     console.error("Error in getPostById controller:", error.message);
     return res.status(500).json({
-      message: "server error",
+      message: "خطأ في السيرفر أثناء جلب المنشور",
       error: error.message,
     });
   }
@@ -231,8 +268,6 @@ export const getPostById = async (req, res) => {
 
 
 // جلب منشورات لمستخدم معين
-
-
 export const getUserPosts = async (req, res) => {
   try {
     const userId = req.user._id; 
@@ -242,6 +277,54 @@ export const getUserPosts = async (req, res) => {
     console.error("Error in getUserPosts controller:", error.message);
     return res
       .status(500)
-      .json({ message: "خطأ في السيرفر", error: error.message });
+      .json({ message: "server error", error: error.message });
+  }
+};
+
+
+
+
+
+//  تبديل حالة حفظ المنشور (حفظ أو إزالة الحفظ)
+export const toggleSavePost = async (req, res) => {
+  try {
+    const { id: postId } = req.params; 
+    const userId = req.user._id;    
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const postExists = await Post.exists({ _id: postId });
+    if (!postExists) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    const isSaved = user.savedPosts.some(
+      (savedPostId) => savedPostId.toString() === postId,
+    );
+
+    if (isSaved) {
+      user.savedPosts.pull(postId); 
+      await user.save();         
+      
+      return res.status(200).json({ 
+        message: "Post removed from saved successfully", 
+        savedPosts: user.savedPosts,
+        isSaved: false,
+      });
+    } else {
+      user.savedPosts.push(postId); 
+      await user.save();           
+      
+      return res.status(200).json({ 
+        message: "Post saved successfully", 
+        savedPosts: user.savedPosts,
+        isSaved: true,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };

@@ -1,15 +1,14 @@
+
 import { createBrowserRouter } from "react-router";
 import Home from "../Layout/MainLayout/Home";
-
+import Profile from "../pages/Profile";
 import Notifications from "../pages/Notifications";
 import NotFound from "../pages/NotFound";
 import Logout from "../Layout/AuthLayout/Logout";
 import MainAuth from "../Layout/AuthLayout/MainAuth";
-
-import Profile from "../pages/Profile";
-import Settings from "../pages/Settings";
-import Feed from "../pages/Feed";
 import ProtectedRoute from "../components/ProtectedRoute";
+import Feed from "../pages/Feed";
+import SavedPosts from "../components/SavedPosts";
 
 const router = createBrowserRouter([
   {
@@ -21,16 +20,17 @@ const router = createBrowserRouter([
     element: <MainAuth />,
   },
 
+  //  الذي تم انشاءه من باستخدام مسار الباك اندProtectedRoute حماية المسارات عن طريق
   {
     element: <ProtectedRoute />,
     children: [
       {
         path: "/home",
-        element:<Home/> ,
+        element: <Home />,
         children: [
           {
             index: true,
-            element:<Feed/>
+            element: <Feed />,
           },
           {
             path: "profile",
@@ -41,8 +41,8 @@ const router = createBrowserRouter([
             element: <Notifications />,
           },
           {
-            path: "settings",
-            element: <Settings />,
+            path: "savedPosts",
+            element: <SavedPosts />,
           },
         ],
       },
@@ -60,5 +60,3 @@ const router = createBrowserRouter([
 ]);
 
 export default router;
-
-

@@ -13,12 +13,13 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    password: { type: String, required: true, select: false }, //  هذه الخاصية تعني لا ترجع كلمة المرور أبداً في أي استعلام افتراضياً 
+    password: { type: String, required: true, select: false }, 
     profilePic: { type: String, default: "" },
     bio: { type: String, default: "" },
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // متابعوه
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // من يتابعهم
     likedPosts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
+    savedPosts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
   },
   { timestamps: true },
 );
@@ -36,8 +37,5 @@ userSchema.methods.comparePassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
-
-
 const User = mongoose.model("User", userSchema);
-export default User ;
-
+export default User;

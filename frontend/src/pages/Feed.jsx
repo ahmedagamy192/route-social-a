@@ -1,11 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { Loader2, MessageSquare, Heart, Share2, User } from "lucide-react";
+import { Loader2, MessageSquare, Share2, User } from "lucide-react";
 import { motion } from "framer-motion";
 import CreatePost from "../components/CreatePost"; 
 import { getAllPostsApi } from "../services/postService";
+import ToggleSavePost from "../components/ToggleSavePost";
+import LikeButton from "../components/LikeButton";
+import { getCurrentUserApi } from "../services/authService";
+import PostComments from "../components/PostComments";
 
 const Feed = () => {
+  const { data: userResponse } = useQuery({
+    queryKey: ["authUser"],
+    queryFn: getCurrentUserApi,
+    retry: false,
+  });
+
+  // استخراج بيانات المستخدم
+  const userData = userResponse?.data || userResponse;
   const {
     data: postsResponse,
     isLoading,
@@ -42,7 +54,7 @@ const Feed = () => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      {/* call creat post componant*/}
+      {/*انشاء منشور*/}
       <CreatePost />
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
@@ -52,7 +64,7 @@ const Feed = () => {
         </p>
       </div>
 
-      {/* 3. قائمة المنشورات */}
+      {/*  قائمة المنشورات */}
       {posts.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-2xl border border-gray-100 shadow-sm">
           <p className="text-gray-500 text-sm">
@@ -88,7 +100,7 @@ const Feed = () => {
               </div>
             </div>
 
-            {/* post content*/}
+            {/* محتو المنشور*/}
             <p className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap">
               {post.body ||
                 post.content ||
@@ -107,10 +119,11 @@ const Feed = () => {
             )}
 
             <div className="flex items-center justify-between pt-4 border-t border-gray-100 text-gray-500 text-sm">
-              <button className="flex items-center gap-1.5 hover:text-red-500 transition-colors cursor-pointer">
-                <Heart className="h-4 w-4" />
-                <span>{post.likesCount || post.likes?.length || 0}</span>
-              </button>
+              <LikeButton
+                postId={post._id}
+                likes={post.likes}
+                currentUserId={userData?._id}
+              />
               <button className="flex items-center gap-1.5 hover:text-blue-500 transition-colors cursor-pointer">
                 <MessageSquare className="h-4 w-4" />
                 <span>
@@ -121,7 +134,15 @@ const Feed = () => {
                 <Share2 className="h-4 w-4" />
                 <span>مشاركة</span>
               </button>
+              <ToggleSavePost
+                postId={post._id}
+                isSaved={userData?.savedPosts?.some(
+                  (savedPostId) =>
+                    String(savedPostId?._id || savedPostId) === String(post._id),
+                )}
+              />
             </div>
+            <PostComments post={post} />
           </motion.div>
         ))
       )}
