@@ -9,6 +9,7 @@ import MainAuth from "../Layout/AuthLayout/MainAuth";
 import ProtectedRoute from "../components/ProtectedRoute";
 import Feed from "../pages/Feed";
 import SavedPosts from "../components/SavedPosts";
+import ChangePassword from "../pages/ChangePassword";
 
 const router = createBrowserRouter([
   {
@@ -43,6 +44,10 @@ const router = createBrowserRouter([
           {
             path: "savedPosts",
             element: <SavedPosts />,
+          },
+          {
+            path: "settings",
+            element: <ChangePassword />,
           },
         ],
       },

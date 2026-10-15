@@ -24,7 +24,6 @@ const LeftSidebar = () => {
         />
       </div>
 
-      {/* رسالة عدم وجود اقتراحات */}
       <div className="text-center py-6 text-gray-400 text-xs">
         No friend suggestions right now.
       </div>

@@ -50,7 +50,6 @@ export default function Navbar() {
           </span>
         </button>
 
-        
         <nav
           aria-label="Main navigation"
           className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 rounded-[20px] border border-slate-200 bg-slate-50 p-1.5 md:flex"
@@ -125,15 +124,14 @@ export default function Navbar() {
                 >
                   <Settings size={18} /> Settings
                 </button>
-                <button
+                {/* <button
                   type="button"
                   role="menuitem"
                   onClick={handleLogout}
                   className="mt-1 flex h-11 w-full items-center gap-3 rounded-lg border-t border-slate-200 px-3 pt-2 text-left text-red-600 hover:bg-red-50"
-                >
-                  
-                   <LogoutButton/>
-                </button>
+                ></button> */}
+
+                <LogoutButton />
               </div>
             </>
           )}
@@ -194,7 +192,7 @@ export default function Navbar() {
             onClick={handleLogout}
             className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold text-red-600 hover:bg-red-50"
           >
-            <LogOut size={19} /> <LogoutButton/>
+            <LogOut size={19} /> <LogoutButton />
           </button>
         </nav>
       )}

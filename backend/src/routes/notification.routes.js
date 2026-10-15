@@ -10,8 +10,8 @@ import {
 const notificationRoutes = express.Router();
 
 notificationRoutes.get("/", protectRoute, getNotifications);
-notificationRoutes.patch("/read", protectRoute, markNotificationsAsRead);
+notificationRoutes.put("/mark-as-read", protectRoute, markNotificationsAsRead);
 notificationRoutes.delete("/", protectRoute, deleteAllNotifications);
-notificationRoutes.delete("/:id", protectRoute, deleteNotification);
+notificationRoutes.delete("/:id/delete", protectRoute, deleteNotification);
 
 export default notificationRoutes;

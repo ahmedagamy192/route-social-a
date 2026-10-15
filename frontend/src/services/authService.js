@@ -26,3 +26,17 @@ export const getCurrentUserApi = async () => {
   return response.data;
 };
 
+
+
+export const changePassword = async ({
+  currentPassword,
+  newPassword,
+  confirmPassword,
+}) => {
+  const response = await axiosInstance.put("/auth/change-password", {
+    currentPassword,
+    newPassword, 
+    confirmPassword, 
+  });
+  return response.data;
+};

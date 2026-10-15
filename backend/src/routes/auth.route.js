@@ -1,5 +1,5 @@
 import express from "express";
-import { getProfile, login, logout, refreshAccessToken, signup } from "../controllers/auth.controller.js";
+import { changePassword, getProfile, login, logout, refreshAccessToken, signup } from "../controllers/auth.controller.js";
 import { protectRoute } from "../middleware/protectRoute.js";
 
 
@@ -12,4 +12,5 @@ authRouter.post("/logout", logout);
 authRouter.post("/refreshToken", refreshAccessToken);
 authRouter.post("/refresh-token", refreshAccessToken);
 authRouter.get("/profile", protectRoute, getProfile);
+authRouter.put("/change-password", protectRoute, changePassword);
 export default authRouter;

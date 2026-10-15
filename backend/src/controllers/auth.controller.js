@@ -20,9 +20,7 @@ const generateTokens = (userId) => {
 
 // store token in redis
 const storeRefreshToken = async (userId, refreshToken) => {
-  await redis.set(`refresh_token:${userId}`, refreshToken, {
-    
-  });
+  await redis.set(`refresh_token:${userId}`, refreshToken, {});
 };
 
 // save cookies in user browser
@@ -74,11 +72,8 @@ export const signup = async (req, res) => {
   }
 };
 
-
-
 export const login = async (req, res) => {
   try {
-   
     const email = req.body?.email?.trim();
     const password = req.body?.password;
 
@@ -120,8 +115,6 @@ export const login = async (req, res) => {
   }
 };
 
-
-
 export const logout = async (req, res) => {
   try {
     const refreshToken = req.cookies?.refreshToken;
@@ -130,7 +123,6 @@ export const logout = async (req, res) => {
         const decode = jwt.verify(refreshToken, REFRESH_TOKEN_JWT_SECRET);
         await redis.del(`refresh_token:${decode.userId}`);
       } catch (error) {
-        
         console.log(
           "Refresh token was invalid or expired, proceeding to clear cookies.",
         );
@@ -155,20 +147,16 @@ export const logout = async (req, res) => {
   }
 };
 
-
-
 // refresh accessToken when end
 
 export const refreshAccessToken = async (req, res) => {
   try {
-    
     const refreshToken = req.cookies.refreshToken;
 
     if (!refreshToken) {
       return res.status(401).json({ message: "No refresh token provided" });
     }
 
-   
     const decoded = jwt.verify(refreshToken, REFRESH_TOKEN_JWT_SECRET);
 
     const storedToken = await redis.get(`refresh_token:${decoded.userId}`);
@@ -182,7 +170,7 @@ export const refreshAccessToken = async (req, res) => {
       ACCESS_TOKEN_JWT_SECRET,
       { expiresIn: "15m" },
     );
-// send cookies to browser
+    // send cookies to browser
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -198,15 +186,55 @@ export const refreshAccessToken = async (req, res) => {
   }
 };
 
-
 // get user information
 export const getProfile = async (req, res) => {
   try {
-    
     const user = req.user;
     res.status(200).json(user);
   } catch (error) {
     console.error("Error in getProfile controller:", error.message);
     res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// chanage password
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    const userId = req.user._id;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res
+        .status(400)
+        .json({ message: "الرجاء إدخال جميع الحقول المطلوبة" });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        message: "كلمة المرور الجديدة غير متطابقة مع تأكيد كلمة المرور",
+      });
+    }
+
+    const user = await User.findById(userId).select("+password");
+    if (!user) {
+      return res.status(404).json({ message: "المستخدم غير موجود" });
+    }
+
+    const isPasswordCorrect = await user.comparePassword(currentPassword);
+    if (!isPasswordCorrect) {
+      return res.status(400).json({ message: "كلمة المرور الحالية غير صحيحة" });
+    }
+
+    // The user model hashes modified passwords in its save hook.
+
+    user.password = newPassword;
+    await user.save();
+    res.status(200).json({
+      success: true,
+      message: "تم تغيير كلمة المرور بنجاح",
+    });
+  } catch (error) {
+    res.status(500).json({ message: "خطأ في الخادم", error: error.message });
   }
 };
