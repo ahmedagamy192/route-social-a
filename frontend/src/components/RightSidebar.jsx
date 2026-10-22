@@ -1,6 +1,6 @@
-// src/components/RightSidebar.jsx
+
 import { Link, useLocation } from "react-router";
-import { Home, User, Bookmark, Users } from "lucide-react";
+import { Home, User, Bookmark } from "lucide-react";
 
 const RightSidebar = () => {
   const location = useLocation();
@@ -12,7 +12,7 @@ const RightSidebar = () => {
       path: "/home/profile",
       icon: <User className="h-5 w-5" />,
     },
-    { name: "Community", path: "/home", icon: <Users className="h-5 w-5" /> },
+    
     {
       name: "Saved",
       path: "/home/savedPosts",

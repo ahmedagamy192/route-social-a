@@ -28,7 +28,7 @@ const Home = () => {
             <div className="col-span-1 lg:col-span-6">
               <Outlet />
             </div>
-            <div className="hidden lg:block lg:col-span-3">
+            <div className="col-span-1 lg:col-span-3">
               <LeftSidebar />
             </div>
           </div>
@@ -44,4 +44,3 @@ const Home = () => {
 };
 
 export default Home;
-

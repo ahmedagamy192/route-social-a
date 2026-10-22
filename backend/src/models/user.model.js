@@ -13,8 +13,11 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    password: { type: String, required: true, select: false }, 
+    password: { type: String, required: true, select: false },
+    // رابط HTTPS الذي تستخدمه الواجهة لعرض صورة المستخدم.
     profilePic: { type: String, default: "" },
+    // للصورة في Cloudinary لحذف النسخة القديمة عند الاستبدال.
+    profilePicPublicId: { type: String, select: false },
     bio: { type: String, default: "" },
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // متابعوه
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // من يتابعهم
@@ -37,5 +40,7 @@ userSchema.methods.comparePassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
+
+
 const User = mongoose.model("User", userSchema);
-export default User;
+export default User ;

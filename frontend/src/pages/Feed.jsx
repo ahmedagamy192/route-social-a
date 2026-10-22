@@ -1,23 +1,26 @@
-import { useQuery } from "@tanstack/react-query";
 
-import { Loader2, MessageSquare, Share2, User } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Loader2, MessageSquare } from "lucide-react";
 import { motion } from "framer-motion";
 import CreatePost from "../components/CreatePost"; 
-import { getAllPostsApi } from "../services/postService";
+import CommentInteractions from "../components/CommentInteractions";
+import DeletePost from "../components/DeletePost";
 import ToggleSavePost from "../components/ToggleSavePost";
 import LikeButton from "../components/LikeButton";
+import UserAvatar from "../components/UserAvatar";
 import { getCurrentUserApi } from "../services/authService";
-import PostComments from "../components/PostComments";
+import { getAllPostsApi } from "../services/postService";
 
 const Feed = () => {
+    
   const { data: userResponse } = useQuery({
     queryKey: ["authUser"],
     queryFn: getCurrentUserApi,
     retry: false,
   });
 
-  // استخراج بيانات المستخدم
-  const userData = userResponse?.data || userResponse;
+  const userData = userResponse?.data || userResponse?.user || userResponse;
+
   const {
     data: postsResponse,
     isLoading,
@@ -25,7 +28,9 @@ const Feed = () => {
     error,
   } = useQuery({
     queryKey: ["posts"],
-    queryFn: getAllPostsApi,
+    queryFn:
+      getAllPostsApi,
+       
   });
 
   const posts =
@@ -35,7 +40,7 @@ const Feed = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh]">
         <Loader2 className="h-10 w-10 animate-spin text-emerald-600 mb-3" />
-        <p className="text-gray-500 font-medium">downloading ....</p>
+        <p className="text-gray-500 font-medium">جاري تحميل المنشورات...</p>
       </div>
     );
   }
@@ -43,10 +48,10 @@ const Feed = () => {
   if (isError) {
     return (
       <div className="max-w-xl mx-auto my-8 p-6 bg-red-50 border border-red-200 rounded-xl text-center text-red-600 shadow-sm">
-        <p className="font-bold text-lg mb-1">error in downloading</p>
+        <p className="font-bold text-lg mb-1">تعذر تحميل المنشورات</p>
         <p className="text-sm">
           {error.response?.data?.message ||
-            "server error"}
+            "حدث خطأ غير متوقع أثناء الاتصال بالخادم."}
         </p>
       </div>
     );
@@ -54,7 +59,7 @@ const Feed = () => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      {/*انشاء منشور*/}
+      {/*  صندوق إنشاء منشور جديد */}
       <CreatePost />
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
@@ -81,13 +86,8 @@ const Feed = () => {
             className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4"
           >
             <div className="flex items-center gap-3">
-              <div className="bg-emerald-100 text-emerald-700 h-10 w-10 rounded-full flex items-center justify-center font-bold">
-                {post.user?.name ? (
-                  post.user.name.charAt(0).toUpperCase()
-                ) : (
-                  <User className="h-5 w-5" />
-                )}
-              </div>
+              {/* بيانات المستخدم */}
+              <UserAvatar user={post.user} />
               <div>
                 <h3 className="text-sm font-bold text-gray-900">
                   {post.user?.name || "مستخدم مجهول"}
@@ -97,10 +97,12 @@ const Feed = () => {
                     ? new Date(post.createdAt).toLocaleDateString()
                     : "منذ وقت قصير"}
                 </p>
+                {/* delete post */}
+                <DeletePost postId={post._id} />
               </div>
             </div>
 
-            {/* محتو المنشور*/}
+            {/* محتوى المنشور */}
             <p className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap">
               {post.body ||
                 post.content ||
@@ -118,31 +120,22 @@ const Feed = () => {
               </div>
             )}
 
+            {/* أزرار التفاعل */}
             <div className="flex items-center justify-between pt-4 border-t border-gray-100 text-gray-500 text-sm">
               <LikeButton
                 postId={post._id}
                 likes={post.likes}
                 currentUserId={userData?._id}
               />
-              <button className="flex items-center gap-1.5 hover:text-blue-500 transition-colors cursor-pointer">
-                <MessageSquare className="h-4 w-4" />
-                <span>
-                  {post.commentsCount || post.comments?.length || 0} تعليق
-                </span>
-              </button>
-              <button className="flex items-center gap-1.5 hover:text-emerald-600 transition-colors cursor-pointer">
-                <Share2 className="h-4 w-4" />
-                <span>مشاركة</span>
-              </button>
-              <ToggleSavePost
-                postId={post._id}
-                isSaved={userData?.savedPosts?.some(
-                  (savedPostId) =>
-                    String(savedPostId?._id || savedPostId) === String(post._id),
-                )}
-              />
+              <div className="flex gap-0.5">
+                {" "}
+                <MessageSquare />
+                <span>{post.comments.length}</span>
+              </div>
+              <ToggleSavePost postId={post._id} />
             </div>
-            <PostComments post={post} />
+
+            <CommentInteractions post={post} currentUser={userData} />
           </motion.div>
         ))
       )}

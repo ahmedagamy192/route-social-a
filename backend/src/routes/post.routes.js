@@ -1,3 +1,4 @@
+
 // post.routes.js
 
 import express from "express";
@@ -5,35 +6,41 @@ import { protectRoute } from "../middleware/protectRoute.js";
 import {
   createPost,
   deletePost,
-  toggleLikePost,
-  commentOnPost,
+  likeUnlikePost,
   getAllPosts,
-  getPostById,
   getUserPosts,
   getSavedPosts,
   toggleSavePost,
+  addComment,
+  deleteComment,
 } from "../controllers/post.controller.js";
 
 const postRoutes = express.Router();
-// جلب جميع المنشورات
+
+//  جلب كل المنشورات 
 postRoutes.get("/", protectRoute, getAllPosts);
-// جلب منشورات المستخدم الحالي
-postRoutes.get("/user/posts", protectRoute, getUserPosts);
-// جلب المنشورات المحفوظة
-postRoutes.get("/saved", protectRoute, getSavedPosts);
-// انشاء منشور
+
+//  إنشاء منشور جديد
 postRoutes.post("/create", protectRoute, createPost);
-// الغاء منشور
-postRoutes.delete("/:id/delete", protectRoute, deletePost);
-// 
-postRoutes.post("/like/:id", protectRoute, toggleLikePost);
-// 
-postRoutes.post("/:id/comment", protectRoute, commentOnPost);
-// جلب تعليق بال id
-postRoutes.get("/:id", protectRoute, getPostById);
 
-// مسار لحفظ أو إلغاء حفظ منشور معين
+//  حذف منشور محدد
+postRoutes.delete("/delete/:id", protectRoute, deletePost);
+
+//  التفاعل مع المنشور (إعجاب / إلغاء إعجاب)
+postRoutes.post("/like/:id", protectRoute, likeUnlikePost);
+
+// إضافة تعليق إلى منشور موجود 
+postRoutes.post("/:id/comment", protectRoute, addComment);
+
+// حذف تعليق واحد.
+postRoutes.delete("/:postId/comment/:commentId", protectRoute, deleteComment);
+//  جلب منشورات المستخدم الحالي فقط
+postRoutes.get("/user/posts", protectRoute, getUserPosts);
+
+// جلب منشورات المحفوظة
+postRoutes.get("/saved", protectRoute, getSavedPosts);
+
+//  إلغاء او حفظ منشور معين
 postRoutes.put("/:id/save", protectRoute, toggleSavePost);
-
 
 export default postRoutes;

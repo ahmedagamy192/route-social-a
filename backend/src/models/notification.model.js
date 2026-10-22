@@ -26,7 +26,7 @@ const notificationSchema = new mongoose.Schema(
       ref: "Post",
       default: null,
     },
-    // 5. حالة الإشعار (هل قرأه المستخدم أم لا)
+    //  حالة الإشعار هل قرأه المستخدم أم لا)
     read: {
       type: Boolean,
       default: false,

@@ -2,14 +2,10 @@
 
 import { Navigate, Outlet } from "react-router";
 import { useQuery } from "@tanstack/react-query";
-import axiosInstance from "../services/axiosInstance";
 import { Loader2 } from "lucide-react";
+import { fetchCurrentUser } from "../services/authService";
 
-//protectRoute from backend  مسار 
-const fetchCurrentUser = async () => {
-  const response = await axiosInstance.get("/auth/profile");
-  return response.data;
-};
+
 
 const ProtectedRoute = () => {
   const {

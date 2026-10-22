@@ -5,7 +5,6 @@ import { getSavedPosts } from "../services/postService";
 import ToggleSavePost from "./ToggleSavePost"; 
 
 const SavedPosts = () => {
-  //  جلب المنشورات المحفوظة
   const {
     data: savedPosts = [],
     isLoading,
@@ -60,7 +59,7 @@ const SavedPosts = () => {
 
   return (
     <div className="space-y-4">
-      {savedPosts?.map((post) => (
+      {savedPosts.map((post) => (
         <div
           key={post._id}
           className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-3"

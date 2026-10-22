@@ -1,20 +1,23 @@
 // Navbar.jsx
 
 import { useState } from "react";
-import { Avatar } from "@heroui/react";
 import { NavLink, useNavigate } from "react-router";
-import {
-  Home,
-  User,
-  MessageCircle,
-  Settings,
-  LogOut,
-  Menu,
-  X,
-} from "lucide-react";
+import { Home, User, MessageCircle, Settings, Menu, X } from "lucide-react";
 import LogoutButton from "../Layout/AuthLayout/Logout";
+import { useQuery } from "@tanstack/react-query";
+import { getCurrentUserApi } from "../services/authService";
+import UserAvatar from "./UserAvatar";
 
 export default function Navbar() {
+  // بيانات الحساب مخزنة في TanStack Query تحت المفتاح authUser؛
+  // تستخدمها صفحة الملف الشخصي هنا أيضاً، فلا نحتاج إلى مصدر بيانات منفصل للصورة.
+  const { data: response } = useQuery({
+    queryKey: ["authUser"],
+    queryFn: getCurrentUserApi,
+  });
+
+  // توحيد شكل الاستجابة إذا أعاد الخادم المستخدم مباشرة أو ضمن data/user.
+  const userData = response?.data || response?.user || response;
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
@@ -22,6 +25,7 @@ export default function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     setMobileMenuOpen(false);
+    // replace: true لعدم احتفاظ المتصفح بالصفحة القديمة والانتقال للصفحة المختارة
     navigate("/", { replace: true });
   };
 
@@ -34,8 +38,8 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white px-4 md:px-6">
-      <div className="relative mx-auto flex h-22 max-w-384 items-center justify-between">
-        {/* logo*/}
+      <div className="relative mx-auto flex h-[88px] max-w-[1536px] items-center justify-between">
+        {/* الشعار */}
         <button
           type="button"
           className="flex min-w-0 items-center gap-3 text-left focus:outline-none"
@@ -50,6 +54,7 @@ export default function Navbar() {
           </span>
         </button>
 
+        {/* التنقل في وسط الشاشة */}
         <nav
           aria-label="Main navigation"
           className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 rounded-[20px] border border-slate-200 bg-slate-50 p-1.5 md:flex"
@@ -69,27 +74,26 @@ export default function Navbar() {
           </NavLink>
         </nav>
 
-        {/* drope menu*/}
+        {/* بروفايل المستخدم والقائمة المنسدلة (بدون Real DOM) */}
         <div className="relative hidden items-center md:flex">
           <button
             type="button"
-            className="flex h-14.5 items-center gap-3 rounded-full border border-slate-200 bg-slate-100 px-3 transition-colors hover:bg-slate-200 focus:outline-none"
+            className="flex h-[58px] items-center gap-3 rounded-full border border-slate-200 bg-slate-100 px-3 transition-colors hover:bg-slate-200 focus:outline-none"
             aria-label="Account menu"
             aria-haspopup="menu"
             aria-expanded={profileMenuOpen}
             onClick={() => setProfileMenuOpen((isOpen) => !isOpen)}
           >
-            <Avatar
-              size="sm"
-              src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
-              name="Ashley Smith"
-            />
+            {/* يعرض صورة الحساب قرب الاسم، ويعرض مكوّن UserAvatar بديلاً عند غيابها. */}
+            <UserAvatar user={userData} className="h-9 w-9" />
             <span className="max-w-36 truncate text-sm font-medium text-slate-800">
-              Ashley Smith
+              {/* قد لا تكون بيانات الحساب قد وصلت بعد؛ لذلك نستخدم اسماً احتياطياً آمناً. */}
+              {userData?.name || userData?.fullName || "Profile"}
             </span>
             <Menu size={19} className="text-slate-500" />
           </button>
 
+          {/* طبقة شفافة وهمية (Backdrop Overlay) لإغلاق القائمة بالـ State بالكامل بدون تلاعب بالـ DOM */}
           {profileMenuOpen && (
             <>
               <div
@@ -113,6 +117,7 @@ export default function Navbar() {
                 >
                   <User size={18} /> Profile
                 </button>
+                {/* Navbar.jsx */}
                 <button
                   type="button"
                   role="menuitem"
@@ -130,7 +135,7 @@ export default function Navbar() {
                   onClick={handleLogout}
                   className="mt-1 flex h-11 w-full items-center gap-3 rounded-lg border-t border-slate-200 px-3 pt-2 text-left text-red-600 hover:bg-red-50"
                 ></button> */}
-
+                {/* <LogOut size={18} /> Logout */}
                 <LogoutButton />
               </div>
             </>
@@ -153,10 +158,11 @@ export default function Navbar() {
         </div>
       </div>
 
+      {/* قائمة الموبايل */}
       {mobileMenuOpen && (
         <nav
           aria-label="Mobile navigation"
-          className="mx-auto flex max-w-384 flex-col gap-1 border-t border-slate-100 py-3 md:hidden"
+          className="mx-auto flex max-w-[1536px] flex-col gap-1 border-t border-slate-100 py-3 md:hidden"
         >
           <NavLink
             to="/home"
@@ -191,12 +197,10 @@ export default function Navbar() {
             type="button"
             onClick={handleLogout}
             className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold text-red-600 hover:bg-red-50"
-          >
-            <LogOut size={19} /> <LogoutButton />
-          </button>
+          ></button>
+          <LogoutButton />
         </nav>
       )}
     </header>
   );
 }
-

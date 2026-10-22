@@ -13,13 +13,12 @@ const postSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
-    // صاحب المنشور الأصلي
+    // صاحب المنشور الأصلي)
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-   
     likes: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -29,18 +28,16 @@ const postSchema = new mongoose.Schema(
 
     comments: [
       {
-        
         text: {
           type: String,
           required: true,
         },
-        // المستخدم الذي كتب هذا التعليق بالذات
+        // المستخدم الذي كتب هذا التعليق
         user: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
           required: true,
         },
-        
         createdAt: {
           type: Date,
           default: Date.now,
@@ -49,7 +46,7 @@ const postSchema = new mongoose.Schema(
     ],
   },
   {
-    timestamps: true,
+    timestamps: true, 
   },
 );
 

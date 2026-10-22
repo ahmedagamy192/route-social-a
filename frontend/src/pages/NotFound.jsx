@@ -2,7 +2,7 @@
 
 const NotFound = () => {
   return (
-    <div>NotFound</div>
+    <div className=" min-h-screen flex  justify-center items-center text-4xl text-red-400"> ERROR : 404 NotFound</div>
   )
 }
 

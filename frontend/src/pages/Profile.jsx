@@ -1,8 +1,8 @@
-// src/pages/Profile.jsx
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+
+import { useRef, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  User,
+  Camera,
   Mail,
   ShieldCheck,
   Loader2,
@@ -10,18 +10,20 @@ import {
   FileText,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import toast from "react-hot-toast";
 import LogoutButton from "../Layout/AuthLayout/Logout";
-
-import SavedPosts from "../components/SavedPosts"; // استيراد مكون المنشورات المحفوظة المنفصل
-import { getCurrentUserApi } from "../services/authService";
-import { getUserPostsApi } from "../services/postService";
 import DeletePost from "../components/DeletePost";
+import SavedPosts from "../components/SavedPosts";
+import UserAvatar from "../components/UserAvatar";
+
+import { getUserPostsApi } from "../services/postService";
+import { getCurrentUserApi } from "../services/authService";
+import { updateProfilePictureApi } from "../services/userServices";
 
 const Profile = () => {
-  // حالة التحكم فى عرض المنشورات الخاصة او المحفوظة يتم عرضها فى اسفل الملف
   const [activeTab, setActiveTab] = useState("myPosts");
-
-  // جلب بيانات المستخدم الحالي لعرضها في البروفايل
+  const profilePictureInputRef = useRef(null);
+  const queryClient = useQueryClient();
   const {
     data: response,
     isLoading,
@@ -35,11 +37,61 @@ const Profile = () => {
 
   const userData = response?.data || response;
 
-  //  جلب منشورات الخاصة بالمستخدم
+  const profilePictureMutation = useMutation({
+    mutationFn: updateProfilePictureApi,
+    onSuccess: async () => {
+      toast.success("تم تحديث الصورة الشخصية بنجاح");
+      await queryClient.invalidateQueries({ queryKey: ["authUser"] });
+      await queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
+    onError: (uploadError) => {
+      toast.error(
+        uploadError.response?.data?.message || "تعذر تحديث الصورة الشخصية",
+      );
+    },
+  });
+
+  const handleProfilePictureChange = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("اختر صورة بصيغة JPG أو PNG أو WEBP أو GIF");
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      toast.error("يجب ألا يتجاوز حجم الصورة 3 ميجابايت");
+      return;
+    }
+
+    try {
+      const imageData = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result !== "string") {
+            reject(new Error("تعذر قراءة ملف الصورة"));
+            return;
+          }
+          resolve(reader.result);
+        };
+        reader.onerror = () =>
+          reject(reader.error || new Error("تعذر قراءة ملف الصورة"));
+        reader.readAsDataURL(file);
+      });
+      profilePictureMutation.mutate(imageData);
+    } catch (readError) {
+      console.error("Failed to read profile picture:", readError);
+      toast.error("تعذر قراءة الصورة المحددة");
+    }
+  };
+
+  // جلب منشورات المستخدم الخاصة
   const { data: userPostsResponse, isLoading: postsLoading } = useQuery({
     queryKey: ["userPosts"],
     queryFn: getUserPostsApi,
-    enabled: !!userData, // لا يتم جلب المنشورات إلا إذا توفرت بيانات المستخدم أولاً
+    enabled: !!userData, 
   });
 
   const userPosts =
@@ -58,7 +110,8 @@ const Profile = () => {
   }
 
   if (isError) {
-    const errorMsg = error.response?.data?.message || "download error";
+    const errorMsg =
+      error.response?.data?.message || "حدث خطأ في تحميل البيانات";
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh] px-4">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md text-center shadow-sm">
@@ -72,7 +125,6 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-gray-50/50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto space-y-6">
-        {/* البيانات الشخصية*/}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -85,14 +137,35 @@ const Profile = () => {
           <div className="px-6 pb-6 relative bottom-25">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end -mt-16 mb-6 gap-4">
               <div className="flex items-end gap-4">
-                <div className="relative bg-white p-2 rounded-full shadow-md border-4 border-white">
-                  <div className="bg-linear-to-tr from-emerald-500 to-teal-400 text-white h-24 w-24 rounded-full flex items-center justify-center text-3xl font-bold shadow-inner">
-                    {userData?.name ? (
-                      userData.name.charAt(0).toUpperCase()
+                <div className="relative rounded-full border-4 border-white bg-white p-2 shadow-md">
+                 
+                  <UserAvatar
+                    user={userData}
+                    className="h-24 w-24 text-3xl text-white"
+                  />
+                  <input
+                    ref={profilePictureInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={handleProfilePictureChange}
+                    className="hidden"
+                    aria-label="اختر صورة شخصية"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => profilePictureInputRef.current?.click()}
+                   
+                    disabled={profilePictureMutation.isPending}
+                    aria-label="تغيير الصورة الشخصية"
+                    className="absolute bottom-1 right-1 flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-emerald-600 text-white shadow hover:bg-emerald-700 disabled:cursor-wait disabled:opacity-70"
+                  >
+                  
+                    {profilePictureMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      <User className="h-12 w-12" />
+                      <Camera className="h-4 w-4" />
                     )}
-                  </div>
+                  </button>
                 </div>
                 <div className="mb-2 text-white">
                   <h1 className="text-2xl font-bold">
@@ -111,7 +184,7 @@ const Profile = () => {
               </div>
             </div>
 
-            {/* تفاصيل About والعدادات الإحصائية */}
+            {/* تفاصيل العدادات الإحصائية */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-5 border-t border-gray-100">
               <div className="md:col-span-1 bg-gray-50/70 p-4 rounded-xl border border-gray-100 space-y-3">
                 <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">
@@ -154,7 +227,7 @@ const Profile = () => {
                       Saved Posts
                     </span>
                     <h4 className="text-xl font-bold text-gray-800 mt-0.5">
-                      {userData?.savedPosts?.length || 0}
+                      {userData?.savedPosts.length || 0}
                     </h4>
                   </div>
                   <div className="bg-amber-50 p-3 rounded-lg text-amber-600">
@@ -166,9 +239,9 @@ const Profile = () => {
           </div>
         </motion.div>
 
-        {/* قسم الاختيارات السفلي*/}
+        {/* قسم الـ Tabs السفلية والتحكم في عرض المكونات بناءً على اختيار المستخدم */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
-          {/* أزرار التبديل */}
+          {/* أزرار التبديل بين التبويبات */}
           <div className="flex border-b border-gray-100 gap-8">
             <button
               onClick={() => setActiveTab("myPosts")}
@@ -192,9 +265,10 @@ const Profile = () => {
             </button>
           </div>
 
-          {/* العرض التعليقات او المنشورات المحفوظة بناؤ على الاختيار*/}
+          {/* العرض المشروط بناء على التبويب النشط */}
           <div className="space-y-4">
             {activeTab === "myPosts" ? (
+           
               postsLoading ? (
                 <div className="flex justify-center py-10">
                   <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
@@ -233,6 +307,8 @@ const Profile = () => {
                 ))
               )
             ) : (
+              // إذا كان التبويب النشط هو المنشورات المحفوظة)
+
               <SavedPosts />
             )}
           </div>

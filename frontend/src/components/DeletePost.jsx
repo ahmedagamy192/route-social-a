@@ -23,13 +23,13 @@ const DeletePost = ({ postId }) => {
     },
   });
 
-  // عرض زر لتاكيد حذف المنشوراو الرجوع
+  //  زر لتاكيد حذف المنشوراو الرجوع
   if (isConfirming) {
     return (
       <div className="flex items-center gap-1 bg-red-50 p-1 rounded-lg border border-red-100 animate-fadeIn">
         <span className="text-[11px] text-red-600 font-medium px-1">حذف؟</span>
 
-        {/* زر التأكيد */}
+        
         <button
           onClick={() => mutate()}
           disabled={isPending}

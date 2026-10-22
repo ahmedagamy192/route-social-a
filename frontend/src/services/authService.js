@@ -22,11 +22,16 @@ export const logoutApi = async () => {
 
 // user information function
 export const getCurrentUserApi = async () => {
-  const response = await axiosInstance.get("/auth/profile");
+  const response = await axiosInstance.get("/users/profile");
   return response.data;
 };
 
 
+
+export const fetchCurrentUser = async () => {
+  const response = await axiosInstance.get("/auth/profile");
+  return response.data;
+};
 
 export const changePassword = async ({
   currentPassword,

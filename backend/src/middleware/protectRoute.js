@@ -14,8 +14,7 @@ export const protectRoute = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(accessToken, ACCESS_TOKEN_JWT_SECRET);
-    //  البحث عن المستخدم في MongoDB مع استبعاد كلمة السر (-password)
-
+  
     const user = await User.findById(decoded.userId).select("-password");
 
     if (!user) {

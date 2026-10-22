@@ -85,8 +85,7 @@ export const login = async (req, res) => {
       });
     }
 
-    //  البحث عن المستخدم مع إجبار جلب كلمة السر
-    const user = await User.findOne({ email }).select("+password"); // select: false لانه فيschemaModel  select("+password") تم استخدام
+    const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
       return res.status(400).json({ message: "Invalid email or password" });
@@ -225,8 +224,6 @@ export const changePassword = async (req, res) => {
     if (!isPasswordCorrect) {
       return res.status(400).json({ message: "كلمة المرور الحالية غير صحيحة" });
     }
-
-    // The user model hashes modified passwords in its save hook.
 
     user.password = newPassword;
     await user.save();
