@@ -1,37 +1,32 @@
-
 import mongoose from "mongoose";
+import { MONGO_URI } from "../config/env.js";
 
-let cached = global.mongoose;
+let connectionPromise;
 
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
-}
-
-async function connectToDataBase() {
-  if (cached.conn) {
-    return cached.conn;
+const connectToDataBase = async () => {
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
   }
 
-  if (!cached.promise) {
-    const opts = {
-      bufferCommands: false,
-    };
+  if (!MONGO_URI) {
+    throw new Error("MONGO_URI is not configured for the current environment");
+  }
 
-    cached.promise = mongoose
-      .connect(process.env.MONGO_URI, opts)
-      .then((mongoose) => {
-        return mongoose;
-      });
+  if (!connectionPromise) {
+    connectionPromise = mongoose.connect(MONGO_URI).catch((error) => {
+      connectionPromise = undefined;
+      console.error("Database connection error:", error.message);
+      throw error;
+    });
   }
 
   try {
-    cached.conn = await cached.promise;
-  } catch (e) {
-    cached.promise = null;
-    throw e;
+    const connection = await connectionPromise;
+    console.log("Database connected successfully to MongoDB Atlas");
+    return connection;
+  } finally {
+    connectionPromise = undefined;
   }
-
-  return cached.conn;
-}
+};
 
 export default connectToDataBase;
