@@ -30,5 +30,8 @@ app.use("/api/auth", authRouter);
 app.use("/api/posts", postRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/users", userRouter);
+app.get("/api/test", (req, res) => {
+  res.json({ success: true, message: "Backend is working perfectly!" });
+});
 
 export default app;
